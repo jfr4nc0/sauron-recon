@@ -1,0 +1,8 @@
+{
+  "name": "sauron-recon-search",
+  "schedule": "every 6h",
+  "prompt": "Run the configured Sauron Recon saved search in dry-run first. Read the knowledge context pack, preserve source coverage and per-source failures, persist idempotently, and prepare a report of only new or changed listings. Do not send until the target Telegram destination is explicitly configured in this environment.",
+  "skills": ["sauron-recon"],
+  "workdir": ".",
+  "deliver": "local"
+}

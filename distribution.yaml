@@ -1,0 +1,37 @@
+name: sauron-recon
+version: 0.1.0
+description: "Hermes profile distribution for resilient commercial-property reconnaissance and Telegram reports."
+hermes_requires: ">=0.12.0"
+author: "jfr4nc0"
+license: "MIT"
+env_requires:
+  - name: FIRECRAWL_API_URL
+    description: "Firecrawl base URL, for example http://localhost:3002"
+    required: false
+    default: ""
+  - name: FIRECRAWL_API_KEY
+    description: "Firecrawl API key when the configured endpoint requires authentication"
+    required: false
+    default: ""
+  - name: TELEGRAM_BOT_TOKEN
+    description: "Telegram bot token used by the gateway/runtime delivery layer"
+    required: false
+    default: ""
+  - name: SAURON_RECON_DATA_DIR
+    description: "Directory for local SQLite state and generated reports"
+    required: false
+    default: "./runtime"
+distribution_owned:
+  - distribution.yaml
+  - SOUL.md
+  - config.yaml
+  - mcp.json
+  - skills/sauron-recon/
+  - cron/
+  - knowledge/
+  - src/
+  - tests/
+  - pyproject.toml
+  - README.md
+  - PLAN.md
+  - .env.example

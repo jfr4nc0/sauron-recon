@@ -1,11 +1,33 @@
 # sauron-recon
 
-Agente liviano para Hermes orientado a descubrir locales comerciales en alquiler o venta, normalizar resultados de múltiples fuentes, detectar novedades y enviar reportes por Telegram.
+Profile Distribution de Hermes para descubrir locales comerciales en alquiler o venta, normalizar resultados de múltiples fuentes, detectar novedades y enviar reportes por Telegram.
 
-Estado: planificación. La arquitectura y el roadmap están en [PLAN.md](PLAN.md).
+Estado: implementación inicial. La arquitectura y el roadmap están en [PLAN.md](PLAN.md), y la capa de conocimiento está en [knowledge/00-index.md](knowledge/00-index.md).
 
-El proyecto no evade CAPTCHAs, autenticación ni controles anti-bot. Las fuentes deben ser consultadas respetando sus términos, robots.txt, límites de frecuencia y permisos de automatización.
+## Distribution installable
 
-## Próximo paso
+Este repositorio sigue el formato oficial de Hermes Profile Distributions:
 
-Revisar y aprobar `PLAN.md`, especialmente el alcance del MVP, las fuentes permitidas, los criterios de búsqueda y el destino de Telegram. Luego se implementará el núcleo determinista antes de conectar scraping real y cronjobs productivos.
+```bash
+hermes profile install git@github.com:jfr4nc0/sauron-recon.git --alias
+```
+
+La distribución incluye `SOUL.md`, configuración, skill, ejemplos de cron y la vault Obsidian. Cada instalación conserva sus propias memorias, sesiones, credenciales y estado runtime.
+
+## Desarrollo local
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[test]'
+pytest
+python scripts/verify_distribution.py
+sauron-recon health
+sauron-recon search --dry-run --criteria '{"operation":"rent","zones":["Palermo"],"max_price":1500,"min_area_m2":50}'
+```
+
+El núcleo actual es determinista y usa fixtures/in-memory para validar contratos, deduplicación, scoring, aislamiento de fallos e idempotencia SQLite antes de conectar fuentes externas.
+
+## Seguridad y cumplimiento
+
+El proyecto no evade CAPTCHAs, autenticación ni controles anti-bot. Las fuentes deben consultarse respetando sus términos, robots.txt, límites de frecuencia y permisos de automatización.

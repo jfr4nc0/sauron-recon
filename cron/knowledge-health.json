@@ -1,0 +1,8 @@
+{
+  "name": "sauron-recon-knowledge-health",
+  "schedule": "0 4 * * 0",
+  "prompt": "Read knowledge/00-index.md and validate that decisions, source policies, runbooks, and context packs are linked and current. Update only durable project knowledge; never write secrets, sessions, raw credentials, or unverified claims.",
+  "skills": ["sauron-recon"],
+  "workdir": ".",
+  "deliver": "local"
+}

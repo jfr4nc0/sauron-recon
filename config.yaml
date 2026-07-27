@@ -1,0 +1,14 @@
+# Distribution defaults. Installers keep their local model/provider overrides.
+agent:
+  max_turns: 40
+  tool_use_enforcement: true
+compression:
+  enabled: true
+display:
+  language: es
+  tool_progress: true
+terminal:
+  cwd: "${SAURON_RECON_HOME:-.}"
+  timeout: 180
+security:
+  redact_secrets: true

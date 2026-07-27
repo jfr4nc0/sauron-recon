@@ -1,0 +1,16 @@
+# Decision Log
+
+## ADR-001 — distribución Hermes en la raíz
+
+- Fecha: 2026-07-27
+- Estado: aceptada
+- Decisión: el repositorio es directamente una Profile Distribution, con `distribution.yaml`, `SOUL.md`, `config.yaml`, `skills/`, `cron/` y `knowledge/`.
+- Motivo: permite instalar y actualizar el agente completo en VPS sin compartir memorias, sesiones, claves ni estado.
+- Fuente: documentación oficial de Hermes, https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions (consultada 2026-07-27).
+
+## ADR-002 — núcleo determinista antes de scraping real
+
+- Fecha: 2026-07-27
+- Estado: aceptada
+- Decisión: validar dominio, normalización, deduplicación, aislamiento de errores y scoring con fixtures antes de integrar fuentes reales.
+- Motivo: reduce acoplamiento y permite probar resiliencia sin depender de layouts o disponibilidad externa.

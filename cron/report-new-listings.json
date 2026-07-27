@@ -1,0 +1,8 @@
+{
+  "name": "sauron-recon-report",
+  "schedule": "0 9 * * *",
+  "prompt": "Read the latest Sauron Recon run and knowledge runbook. Render a concise Spanish report with new/changed listings, source URLs, score reasons, coverage, failures and explicit unknowns. Deliver only through the configured Hermes Telegram destination after dry-run validation.",
+  "skills": ["sauron-recon"],
+  "workdir": ".",
+  "deliver": "local"
+}
