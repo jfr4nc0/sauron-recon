@@ -13,12 +13,20 @@ def test_classifies_category_and_detail_urls():
 
 
 def test_parses_argentine_price_currency_and_area():
-    parsed = parse_detail("# Local en Alquiler en Palermo\nalquiler $ 16.500.000\n* 660 m² tot.\n* 625 m² cub.")
+    parsed = parse_detail("# Local en Alquiler en Palermo\nalquiler $ 16.500.000\n* 660 m² tot.\n* 625 m² cub.\nExpensas $300.000\nWhatsApp Contactar", url="https://www.argenprop.com/local-en-alquiler-en-palermo--20056658")
     assert parsed.title == "Local en Alquiler en Palermo"
     assert parsed.operation == "rent"
     assert parsed.price == Decimal("16500000")
     assert parsed.currency == "ARS"
     assert parsed.area_m2 == Decimal("660")
+    assert parsed.expenses == Decimal("300000")
+    assert parsed.contact == "public_contact_indicator"
+    assert parsed.external_id == "20056658"
+
+
+def test_prefers_listing_heading_over_auxiliary_sections():
+    parsed = parse_detail("# Características adicionales\n# Local en alquiler en Palermo\n$ 1.000")
+    assert parsed.title == "Local en alquiler en Palermo"
 
 
 def test_extracts_only_detail_links_from_category_markdown():

@@ -23,10 +23,14 @@ class ParsedDetail:
     currency: str | None
     area_m2: Decimal | None
     address: str | None = None
+    expenses: Decimal | None = None
+    contact: str | None = None
+    external_id: str | None = None
 
 
 _PRICE_RE = re.compile(r"(?P<currency>US\$|U\$S|USD|\$)\s*:?\s*(?P<value>\d[\d.]*(?:,\d+)?)", re.IGNORECASE)
 _AREA_RE = re.compile(r"(?P<value>\d[\d.]*(?:,\d+)?)\s*m(?:2|²)\s*(?P<label>tot(?:al)?|cub(?:iertos?)?)?", re.IGNORECASE)
+_EXPENSES_RE = re.compile(r"expensas?\s*(?:de|:)?\s*(?:US\$|U\$S|USD|\$)?\s*(?P<value>\d[\d.]*(?:,\d+)?)", re.IGNORECASE)
 _TITLE_LINK_RE = re.compile(r"\[[^\]]+\]\((?P<url>https?://[^)\s]+)", re.IGNORECASE)
 
 
@@ -58,12 +62,12 @@ def _decimal(raw: str) -> Decimal | None:
         return None
 
 
-def parse_detail(markdown: str, fallback_title: str = "Listing sin título") -> ParsedDetail:
+def parse_detail(markdown: str, fallback_title: str = "Listing sin título", url: str | None = None) -> ParsedDetail:
     text = re.sub(r"\s+", " ", markdown).strip()
     title = fallback_title.strip() or "Listing sin título"
-    headings = re.findall(r"^#{1,6}\s+(.+)$", markdown, re.MULTILINE)
+    headings = [re.sub(r"\s+", " ", heading).strip() for heading in re.findall(r"^#{1,6}\s+(.+)$", markdown, re.MULTILINE)]
     if headings:
-        title = re.sub(r"\s+", " ", headings[0]).strip()
+        title = next((heading for heading in headings if re.search(r"local|oficina|alquiler|venta", heading, re.IGNORECASE)), headings[0])
     operation = None
     lower = text.lower()
     if re.search(r"\balquiler\b|\balquila\b", lower):
@@ -85,7 +89,14 @@ def parse_detail(markdown: str, fallback_title: str = "Listing sin título") -> 
     location_match = re.search(r"(?:ubicación|direccion|dirección)\s*[:\-]?\s*([^|]+)", text, re.IGNORECASE)
     if location_match:
         address = location_match.group(1).strip()[:300]
-    return ParsedDetail(title, operation, price, currency, area_m2, address)
+    expenses_match = _EXPENSES_RE.search(text)
+    expenses = _decimal(expenses_match.group("value")) if expenses_match else None
+    contact = "public_contact_indicator" if re.search(r"whatsapp|contactar|tel[eé]fono|email", lower) else None
+    external_id = None
+    if url:
+        id_match = re.search(r"(?:MLA[-_]?|--)(\d{6,})", url, re.IGNORECASE)
+        external_id = id_match.group(1) if id_match else None
+    return ParsedDetail(title, operation, price, currency, area_m2, address, expenses, contact, external_id)
 
 
 def extract_detail_links(markdown: str, allowed_domains: tuple[str, ...], limit: int) -> tuple[str, ...]:
@@ -113,5 +124,8 @@ def listing_from_detail(source: str, url: str, parsed: ParsedDetail, raw_markdow
         currency=parsed.currency,
         area_m2=parsed.area_m2,
         address=parsed.address,
+        external_id=parsed.external_id,
+        expenses=parsed.expenses,
+        contact=parsed.contact,
         raw={"page_kind": PageKind.DETAIL.value, "markdown": raw_markdown[:4000]},
     )

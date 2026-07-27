@@ -53,6 +53,10 @@ class Listing:
     address: str | None = None
     observed_at: datetime = field(default_factory=utc_now)
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
+    external_id: str | None = None
+    expenses: Decimal | None = None
+    contact: str | None = None
+    availability: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "url", canonical_url(self.url))

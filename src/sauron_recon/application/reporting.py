@@ -21,6 +21,10 @@ def render_report(result: SearchResult, changes: Iterable[ListingChange] = ()) -
                 details.append(f"precio {listing.price} {listing.currency or ''}".strip())
             if listing.area_m2 is not None:
                 details.append(f"{listing.area_m2} m²")
+            if listing.expenses is not None:
+                details.append(f"expensas {listing.expenses}")
+            if listing.contact:
+                details.append("contacto publicado")
             suffix = f" — {', '.join(details)}" if details else ""
             fields = f" ({', '.join(change.changed_fields)})" if change.changed_fields else ""
             lines.extend([f"- **{marker}**{fields}: [{listing.title}]({listing.url}){suffix}"])

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from urllib.parse import urlsplit
 
@@ -77,9 +77,9 @@ class FirecrawlSource:
             scraped = self._scrape_markdown(url)
             if scraped is not None:
                 markdown = scraped
-        parsed = parse_detail(markdown, fallback_title=title)
+        parsed = parse_detail(markdown, fallback_title=title, url=url)
         if parsed.operation is None and criteria.operation != "rent_or_sale":
-            parsed = parsed.__class__(parsed.title, criteria.operation, parsed.price, parsed.currency, parsed.area_m2, parsed.address)
+            parsed = replace(parsed, operation=criteria.operation)
         return listing_from_detail(self.name, url, parsed, markdown)
 
     def _expand_category(self, url: str, result: dict, criteria: SearchCriteria) -> list[Listing]:
@@ -95,9 +95,9 @@ class FirecrawlSource:
             detail_markdown = self._scrape_markdown(detail_url)
             if detail_markdown is None:
                 continue
-            parsed = parse_detail(detail_markdown, fallback_title=str(result.get("title") or "Listing sin título"))
+            parsed = parse_detail(detail_markdown, fallback_title=str(result.get("title") or "Listing sin título"), url=detail_url)
             if parsed.operation is None and criteria.operation != "rent_or_sale":
-                parsed = parsed.__class__(parsed.title, criteria.operation, parsed.price, parsed.currency, parsed.area_m2, parsed.address)
+                parsed = replace(parsed, operation=criteria.operation)
             listings.append(listing_from_detail(self.name, detail_url, parsed, detail_markdown))
         return listings
 

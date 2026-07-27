@@ -32,6 +32,10 @@ CREATE TABLE IF NOT EXISTS listings (
   currency TEXT,
   area_m2 TEXT,
   address TEXT,
+  external_id TEXT,
+  expenses TEXT,
+  contact TEXT,
+  availability TEXT,
   observed_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS observations (
@@ -44,6 +48,10 @@ CREATE TABLE IF NOT EXISTS observations (
   currency TEXT,
   area_m2 TEXT,
   address TEXT,
+  external_id TEXT,
+  expenses TEXT,
+  contact TEXT,
+  availability TEXT,
   state TEXT NOT NULL DEFAULT 'present',
   PRIMARY KEY (run_id, identity)
 );
@@ -55,6 +63,7 @@ CREATE INDEX IF NOT EXISTS observations_identity_time
 def _fingerprint(listing: Listing) -> str:
     payload = "|".join(str(value or "") for value in (
         listing.title, listing.price, listing.currency, listing.area_m2, listing.address,
+        listing.external_id, listing.expenses, listing.contact, listing.availability,
     ))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -68,6 +77,10 @@ def _changed_fields(previous: sqlite3.Row | None, listing: Listing) -> tuple[str
         "currency": listing.currency,
         "area_m2": str(listing.area_m2) if listing.area_m2 is not None else None,
         "address": listing.address,
+        "external_id": listing.external_id,
+        "expenses": str(listing.expenses) if listing.expenses is not None else None,
+        "contact": listing.contact,
+        "availability": listing.availability,
     }
     return tuple(field for field, value in current.items() if previous[field] != value)
 
@@ -81,9 +94,15 @@ class SQLiteListingRepository:
         with sqlite3.connect(self.path) as connection:
             connection.execute("PRAGMA journal_mode=WAL")
             connection.executescript(_SCHEMA)
-            columns = {row[1] for row in connection.execute("PRAGMA table_info(observations)")}
-            if "state" not in columns:
-                connection.execute("ALTER TABLE observations ADD COLUMN state TEXT NOT NULL DEFAULT 'present'")
+            for table, additions in {
+                "listings": ("external_id", "expenses", "contact", "availability"),
+                "observations": ("external_id", "expenses", "contact", "availability", "state"),
+            }.items():
+                columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+                for column in additions:
+                    if column not in columns:
+                        default = " TEXT NOT NULL DEFAULT 'present'" if column == "state" else " TEXT"
+                        connection.execute(f"ALTER TABLE {table} ADD COLUMN {column}{default}")
 
     def save_run(self, result: SearchResult) -> tuple[ListingChange, ...]:
         self.initialize()
@@ -100,7 +119,8 @@ class SQLiteListingRepository:
             )
             for listing in result.listings:
                 previous = connection.execute(
-                    """SELECT title, price, currency, area_m2, address
+                    """SELECT title, price, currency, area_m2, address,
+                    external_id, expenses, contact, availability
                     FROM observations WHERE identity = ? ORDER BY observed_at DESC LIMIT 1""",
                     (listing.identity,),
                 ).fetchone()
@@ -108,20 +128,22 @@ class SQLiteListingRepository:
                 changes.append(ListingChange(listing, kind, _changed_fields(previous, listing)))
                 connection.execute(
                     """INSERT OR IGNORE INTO listings
-                    (identity, run_id, source, url, title, operation, zone, price, currency, area_m2, address, observed_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (identity, run_id, source, url, title, operation, zone, price, currency, area_m2, address, external_id, expenses, contact, availability, observed_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (listing.identity, result.run_id, listing.source, listing.url, listing.title, listing.operation,
                      listing.zone, str(listing.price) if listing.price is not None else None, listing.currency,
-                     str(listing.area_m2) if listing.area_m2 is not None else None, listing.address,
+                     str(listing.area_m2) if listing.area_m2 is not None else None, listing.address, listing.external_id,
+                     str(listing.expenses) if listing.expenses is not None else None, listing.contact, listing.availability,
                      listing.observed_at.isoformat()),
                 )
                 connection.execute(
                     """INSERT INTO observations
-                    (run_id, identity, observed_at, fingerprint, title, price, currency, area_m2, address)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (run_id, identity, observed_at, fingerprint, title, price, currency, area_m2, address, external_id, expenses, contact, availability)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (result.run_id, listing.identity, listing.observed_at.isoformat(), _fingerprint(listing),
                      listing.title, str(listing.price) if listing.price is not None else None, listing.currency,
-                     str(listing.area_m2) if listing.area_m2 is not None else None, listing.address),
+                     str(listing.area_m2) if listing.area_m2 is not None else None, listing.address, listing.external_id,
+                     str(listing.expenses) if listing.expenses is not None else None, listing.contact, listing.availability),
                 )
         return tuple(changes)
 
