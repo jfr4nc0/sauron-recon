@@ -1,21 +1,22 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from decimal import Decimal
 from urllib.parse import urlsplit
 
 from sauron_recon.domain.models import Listing, SearchCriteria
 
-from .firecrawl_client import FirecrawlClient
+from .firecrawl_client import FirecrawlClient, FirecrawlError
+from .resilience import CircuitBreaker, RateLimiter
 
 _PRICE_RE = re.compile(r"(?:USD|US\$|U\$S|\$)\s*([\d.,]+)", re.IGNORECASE)
 _AREA_RE = re.compile(r"([\d.,]+)\s*m(?:2|²)", re.IGNORECASE)
 
 
-def _decimal(raw: str):
+def _decimal(raw: str) -> Decimal | None:
     cleaned = raw.replace(".", "").replace(",", ".")
     try:
-        from decimal import Decimal
         return Decimal(cleaned)
     except Exception:
         return None
@@ -36,19 +37,39 @@ class FirecrawlSource:
     )
     max_results: int = 10
     scrape_details: bool = False
+    rate_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(min_interval_seconds=0.25))
+    circuit_breaker: CircuitBreaker = field(default_factory=CircuitBreaker)
+    last_warnings: list[str] = field(default_factory=list, init=False)
 
     def search(self, criteria: SearchCriteria) -> list[Listing]:
+        self.last_warnings.clear()
+        self.circuit_breaker.before_call()
+        self.rate_limiter.wait()
+        try:
+            results = self.client.search(criteria_query(criteria), limit=self.max_results)
+            self.circuit_breaker.record_success()
+        except Exception:
+            self.circuit_breaker.record_failure()
+            raise
+
         listings: list[Listing] = []
-        for result in self.client.search(criteria_query(criteria), limit=self.max_results):
+        for result in results:
             url = result["url"]
             if not self._allowed(url):
                 continue
             title = str(result.get("title") or "Listing sin título").strip()
             description = str(result.get("description") or "").strip()
-            details = {}
+            markdown = description
             if self.scrape_details:
-                details = self.client.scrape(url).get("data", {}) or {}
-            markdown = str(details.get("markdown") or description)
+                try:
+                    self.circuit_breaker.before_call()
+                    self.rate_limiter.wait()
+                    details = self.client.scrape(url).get("data", {}) or {}
+                    self.circuit_breaker.record_success()
+                    markdown = str(details.get("markdown") or description)
+                except Exception as exc:
+                    self.circuit_breaker.record_failure()
+                    self.last_warnings.append(f"{url}: {type(exc).__name__}: {exc}")
             listings.append(Listing(
                 source=self.name,
                 url=url,
@@ -66,11 +87,11 @@ class FirecrawlSource:
         return any(hostname == domain or hostname.endswith(f".{domain}") for domain in self.allowed_domains)
 
     @staticmethod
-    def _price(text: str):
+    def _price(text: str) -> Decimal | None:
         match = _PRICE_RE.search(text)
         return _decimal(match.group(1)) if match else None
 
     @staticmethod
-    def _area(text: str):
+    def _area(text: str) -> Decimal | None:
         match = _AREA_RE.search(text)
         return _decimal(match.group(1)) if match else None

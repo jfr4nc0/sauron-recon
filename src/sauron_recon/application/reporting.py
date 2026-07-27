@@ -15,7 +15,7 @@ def render_report(result: SearchResult, changes: Iterable[ListingChange] = ()) -
         lines.append("")
         for change in actionable:
             listing = change.listing
-            marker = "Nuevo" if change.kind == "new" else "Modificado"
+            marker = {"new": "Nuevo", "changed": "Modificado", "disappeared": "Desaparecido"}[change.kind]
             details = []
             if listing.price is not None:
                 details.append(f"precio {listing.price} {listing.currency or ''}".strip())

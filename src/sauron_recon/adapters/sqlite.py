@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 
 from sauron_recon.application.ports import SearchResult
@@ -42,6 +44,7 @@ CREATE TABLE IF NOT EXISTS observations (
   currency TEXT,
   area_m2 TEXT,
   address TEXT,
+  state TEXT NOT NULL DEFAULT 'present',
   PRIMARY KEY (run_id, identity)
 );
 CREATE INDEX IF NOT EXISTS observations_identity_time
@@ -78,6 +81,9 @@ class SQLiteListingRepository:
         with sqlite3.connect(self.path) as connection:
             connection.execute("PRAGMA journal_mode=WAL")
             connection.executescript(_SCHEMA)
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(observations)")}
+            if "state" not in columns:
+                connection.execute("ALTER TABLE observations ADD COLUMN state TEXT NOT NULL DEFAULT 'present'")
 
     def save_run(self, result: SearchResult) -> tuple[ListingChange, ...]:
         self.initialize()
@@ -117,6 +123,44 @@ class SQLiteListingRepository:
                      listing.title, str(listing.price) if listing.price is not None else None, listing.currency,
                      str(listing.area_m2) if listing.area_m2 is not None else None, listing.address),
                 )
+        return tuple(changes)
+
+    def mark_disappeared(self, result: SearchResult, complete_sources: set[str]) -> tuple[ListingChange, ...]:
+        """Mark missing listings only for explicitly complete source snapshots."""
+        if not complete_sources:
+            return ()
+        self.initialize()
+        current_identities = {listing.identity for listing in result.listings}
+        changes: list[ListingChange] = []
+        with sqlite3.connect(self.path) as connection:
+            connection.row_factory = sqlite3.Row
+            for row in connection.execute(
+                "SELECT * FROM listings WHERE source IN ({})".format(",".join("?" * len(complete_sources))),
+                tuple(complete_sources),
+            ).fetchall():
+                if row["identity"] in current_identities:
+                    continue
+                previous = connection.execute(
+                    "SELECT state FROM observations WHERE identity = ? ORDER BY observed_at DESC LIMIT 1",
+                    (row["identity"],),
+                ).fetchone()
+                if previous and previous["state"] == "disappeared":
+                    continue
+                listing = Listing(
+                    source=row["source"], url=row["url"], title=row["title"], operation=row["operation"],
+                    zone=row["zone"], price=Decimal(row["price"]) if row["price"] else None,
+                    currency=row["currency"], area_m2=Decimal(row["area_m2"]) if row["area_m2"] else None,
+                    address=row["address"], observed_at=datetime.fromisoformat(row["observed_at"]),
+                )
+                connection.execute(
+                    """INSERT OR IGNORE INTO observations
+                    (run_id, identity, observed_at, fingerprint, title, price, currency, area_m2, address, state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'disappeared')""",
+                    (result.run_id, listing.identity, result.started_at.isoformat(), _fingerprint(listing),
+                     listing.title, str(listing.price) if listing.price is not None else None, listing.currency,
+                     str(listing.area_m2) if listing.area_m2 is not None else None, listing.address),
+                )
+                changes.append(ListingChange(listing, "disappeared"))
         return tuple(changes)
 
     def count_runs(self) -> int:

@@ -22,6 +22,9 @@ class SearchListings:
             try:
                 for listing in source.search(criteria):
                     by_identity.setdefault(listing.identity, listing)
+                warnings = getattr(source, "last_warnings", ())
+                if warnings:
+                    failures.append(SourceFailure(source.name, "partial_detail_failure", "; ".join(warnings)))
             except Exception as exc:  # boundary isolation: one source cannot abort the run
                 failures.append(SourceFailure(source.name, type(exc).__name__, str(exc)))
         result = SearchResult(run_id, started_at, tuple(by_identity.values()), tuple(failures))
