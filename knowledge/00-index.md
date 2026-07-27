@@ -27,3 +27,4 @@ Esta vault es la capa de conocimiento durable del proyecto y la referencia para 
 - [[05-sources/source-policy]] — política de fuentes y cumplimiento.
 - [[06-operations/runbook]] — operación, dry-run y recuperación.
 - [[07-roadmap/phase-1-core]] — estado y aceptación de la primera fase.
+- [[07-roadmap/phase-2-extraction-history]] — extracción real, histórico y reportes.

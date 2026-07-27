@@ -33,7 +33,7 @@ sauron-recon search --live --dry-run --limit 10 \
   --criteria '{"operation":"rent","zones":["Palermo"]}'
 ```
 
-`--scrape-details` habilita una segunda extracción sólo para URLs permitidas por la allowlist.
+`--scrape-details` habilita una segunda extracción sólo para URLs permitidas por la allowlist y permite completar precio/superficie cuando la página los publica. La persistencia histórica detecta listings `new`, `changed` y `unchanged`, y `--report` genera Markdown con novedades y cobertura.
 
 ## Seguridad y cumplimiento
 

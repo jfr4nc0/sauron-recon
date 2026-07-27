@@ -24,4 +24,4 @@ Completada la primera implementación y verificada localmente. El daemon Firecra
 
 ## Próximo incremento
 
-Agregar repositorio SQLite, migraciones y fixtures contractuales; después implementar el adapter Firecrawl con límites y observabilidad.
+Agregar adapters específicos por fuente, detección de listings desaparecidos, límites/rate limiting por dominio y delivery Telegram después de validar el destino.

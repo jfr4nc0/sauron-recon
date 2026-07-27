@@ -11,6 +11,7 @@ from sauron_recon.adapters.firecrawl_client import FirecrawlClient
 from sauron_recon.adapters.firecrawl_source import FirecrawlSource
 from sauron_recon.adapters.in_memory import InMemorySource
 from sauron_recon.adapters.sqlite import SQLiteListingRepository
+from sauron_recon.application.reporting import render_report
 from sauron_recon.application.use_cases import SearchListings
 from sauron_recon.domain.models import SearchCriteria
 
@@ -38,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("--live", action="store_true", help="query the existing Firecrawl daemon")
     search.add_argument("--limit", type=int, default=10, help="maximum Firecrawl results")
     search.add_argument("--scrape-details", action="store_true", help="scrape each allowed result URL")
+    search.add_argument("--report", action="store_true", help="render a Markdown report")
     subparsers.add_parser("health", help="check that the deterministic core imports")
     args = parser.parse_args(argv)
 
@@ -68,13 +70,21 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.dry_run:
         data_dir = Path(os.getenv("SAURON_RECON_DATA_DIR", "./runtime"))
-        SQLiteListingRepository(data_dir / "sauron-recon.sqlite3").save_run(result)
+        changes = SQLiteListingRepository(data_dir / "sauron-recon.sqlite3").save_run(result)
+    else:
+        changes = ()
+
+    if args.report:
+        print(render_report(result, changes))
+        return 0
 
     print(json.dumps({
         "ok": True,
         "run_id": result.run_id,
         "mode": "live" if args.live else "offline",
         "dry_run": args.dry_run,
+        "changes": [{"identity": change.listing.identity, "kind": change.kind,
+                     "changed_fields": change.changed_fields} for change in changes],
         "listings": [
             {"source": item.source, "url": item.url, "title": item.title,
              "price": str(item.price) if item.price is not None else None,
