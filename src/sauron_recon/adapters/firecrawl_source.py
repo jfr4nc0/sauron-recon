@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import Decimal
 from urllib.parse import urlsplit
@@ -39,14 +40,22 @@ class FirecrawlSource:
     scrape_details: bool = False
     rate_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(min_interval_seconds=0.25))
     circuit_breaker: CircuitBreaker = field(default_factory=CircuitBreaker)
+    query_builder: Callable[[SearchCriteria], str] | None = None
+    fallback_builders: tuple[Callable[[SearchCriteria], str], ...] = ()
+    snapshot_complete: bool = False
     last_warnings: list[str] = field(default_factory=list, init=False)
 
     def search(self, criteria: SearchCriteria) -> list[Listing]:
         self.last_warnings.clear()
         self.circuit_breaker.before_call()
-        self.rate_limiter.wait()
         try:
-            results = self.client.search(criteria_query(criteria), limit=self.max_results)
+            builders = (self.query_builder or criteria_query, *self.fallback_builders)
+            results = []
+            for index, builder in enumerate(builders):
+                self.rate_limiter.wait()
+                results = self.client.search(builder(criteria), limit=self.max_results)
+                if results or index == len(builders) - 1:
+                    break
             self.circuit_breaker.record_success()
         except Exception:
             self.circuit_breaker.record_failure()

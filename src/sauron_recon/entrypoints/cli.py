@@ -8,8 +8,8 @@ from decimal import Decimal
 from pathlib import Path
 
 from sauron_recon.adapters.firecrawl_client import FirecrawlClient
-from sauron_recon.adapters.firecrawl_source import FirecrawlSource
 from sauron_recon.adapters.in_memory import InMemorySource
+from sauron_recon.adapters.portal_sources import build_portal_sources
 from sauron_recon.adapters.sqlite import SQLiteListingRepository
 from sauron_recon.application.reporting import render_report
 from sauron_recon.application.use_cases import SearchListings
@@ -40,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("--limit", type=int, default=10, help="maximum Firecrawl results")
     search.add_argument("--scrape-details", action="store_true", help="scrape each allowed result URL")
     search.add_argument("--report", action="store_true", help="render a Markdown report")
+    search.add_argument("--sources", default="zonaprop,argenprop,mercadolibre", help="comma-separated portal adapters")
     subparsers.add_parser("health", help="check that the deterministic core imports")
     args = parser.parse_args(argv)
 
@@ -58,7 +59,12 @@ def main(argv: list[str] | None = None) -> int:
             base_url=os.getenv("FIRECRAWL_API_URL", "http://localhost:3002"),
             api_key=os.getenv("FIRECRAWL_API_KEY") or None,
         )
-        sources = (FirecrawlSource(client, max_results=max(1, min(args.limit, 50)), scrape_details=args.scrape_details),)
+        sources = build_portal_sources(
+            client,
+            tuple(name.strip() for name in args.sources.split(",") if name.strip()),
+            max_results=max(1, min(args.limit, 50)),
+            scrape_details=args.scrape_details,
+        )
     else:
         sources = (InMemorySource("offline-fixture"),)
 

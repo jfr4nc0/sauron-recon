@@ -33,7 +33,15 @@ sauron-recon search --live --dry-run --limit 10 \
   --criteria '{"operation":"rent","zones":["Palermo"]}'
 ```
 
-`--scrape-details` habilita una segunda extracción sólo para URLs permitidas por la allowlist y permite completar precio/superficie cuando la página los publica. La persistencia histórica detecta listings `new`, `changed` y `unchanged`, y `--report` genera Markdown con novedades y cobertura. El rate limiter y circuit breaker protegen el daemon; las desapariciones sólo se marcan para fuentes declaradas como snapshots completos.
+En live, `--sources` permite elegir adapters explícitos:
+
+```bash
+sauron-recon search --live --sources zonaprop,argenprop,mercadolibre \\
+  --criteria '{"operation":"rent","zones":["Palermo"]}'
+```
+
+Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se prueba como máximo un fallback específico, con rate limiting; una respuesta vacía no se interpreta como mercado vacío. `--scrape-details` habilita una segunda extracción sólo para URLs permitidas y `--report` genera Markdown con novedades y cobertura.
+
 
 ## Seguridad y cumplimiento
 
