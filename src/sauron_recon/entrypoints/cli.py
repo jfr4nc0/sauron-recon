@@ -95,7 +95,9 @@ def main(argv: list[str] | None = None) -> int:
         "listings": [
             {"source": item.source, "url": item.url, "title": item.title,
              "price": str(item.price) if item.price is not None else None,
-             "area_m2": str(item.area_m2) if item.area_m2 is not None else None}
+             "area_m2": str(item.area_m2) if item.area_m2 is not None else None,
+             "external_id": item.external_id, "expenses": str(item.expenses) if item.expenses is not None else None,
+             "availability": item.availability, "contact": item.contact}
             for item in result.listings
         ],
         "failures": [failure.__dict__ for failure in result.failures],

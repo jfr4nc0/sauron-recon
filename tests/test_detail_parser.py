@@ -22,6 +22,7 @@ def test_parses_argentine_price_currency_and_area():
     assert parsed.expenses == Decimal("300000")
     assert parsed.contact == "public_contact_indicator"
     assert parsed.external_id == "20056658"
+    assert parsed.availability == "available"
 
 
 def test_prefers_listing_heading_over_auxiliary_sections():

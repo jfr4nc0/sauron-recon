@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
 
+from sauron_recon.domain.dedup import find_duplicate_candidates
 from sauron_recon.domain.models import SearchCriteria
 
 from .ports import SearchResult, SourceFailure, SourcePort
@@ -27,5 +28,11 @@ class SearchListings:
                     failures.append(SourceFailure(source.name, "partial_detail_failure", "; ".join(warnings)))
             except Exception as exc:  # boundary isolation: one source cannot abort the run
                 failures.append(SourceFailure(source.name, type(exc).__name__, str(exc)))
-        result = SearchResult(run_id, started_at, tuple(by_identity.values()), tuple(failures))
+        result = SearchResult(
+            run_id,
+            started_at,
+            tuple(by_identity.values()),
+            tuple(failures),
+            find_duplicate_candidates(tuple(by_identity.values())),
+        )
         return result

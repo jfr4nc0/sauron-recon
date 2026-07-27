@@ -35,6 +35,7 @@ def render_report(result: SearchResult, changes: Iterable[ListingChange] = ()) -
     lines.append("")
     lines.append(f"- Listings observados: {len(result.listings)}")
     lines.append(f"- Fuentes con error: {len(result.failures)}")
+    lines.append(f"- Posibles duplicados cross-source: {len(result.duplicate_candidates)}")
     for failure in result.failures:
         lines.append(f"- ⚠️ `{failure.source}`: {failure.error_type} — {failure.message}")
     lines.append("")

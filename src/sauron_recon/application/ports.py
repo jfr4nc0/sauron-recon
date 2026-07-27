@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+from sauron_recon.domain.dedup import DuplicateCandidate
 from sauron_recon.domain.models import Listing, SearchCriteria
 
 
@@ -26,6 +27,7 @@ class SearchResult:
     started_at: datetime
     listings: tuple[Listing, ...]
     failures: tuple[SourceFailure, ...]
+    duplicate_candidates: tuple[DuplicateCandidate, ...] = ()
 
 
 class ListingRepositoryPort(Protocol):

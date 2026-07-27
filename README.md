@@ -40,7 +40,7 @@ sauron-recon search --live --sources zonaprop,argenprop,mercadolibre \\
   --criteria '{"operation":"rent","zones":["Palermo"]}'
 ```
 
-Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se prueba como máximo un fallback específico, con rate limiting; una respuesta vacía no se interpreta como mercado vacío. `--scrape-details` habilita una segunda extracción sólo para URLs permitidas, descarta categorías como listings y expande un máximo controlado de avisos individuales; el parser extrae ID externo, expensas y un indicador seguro de contacto público; `--report` genera Markdown con novedades y cobertura.
+Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se prueba como máximo un fallback específico, con rate limiting; una respuesta vacía no se interpreta como mercado vacío. `--scrape-details` habilita una segunda extracción sólo para URLs permitidas, descarta categorías como listings y expande un máximo controlado de avisos individuales; el parser extrae ID externo, expensas, disponibilidad y un indicador seguro de contacto público. Los posibles duplicados entre portales se reportan como candidatos explicables, sin fusionar automáticamente avisos; `--report` genera Markdown con novedades y cobertura.
 
 
 ## Seguridad y cumplimiento

@@ -26,6 +26,7 @@ class ParsedDetail:
     expenses: Decimal | None = None
     contact: str | None = None
     external_id: str | None = None
+    availability: str | None = None
 
 
 _PRICE_RE = re.compile(r"(?P<currency>US\$|U\$S|USD|\$)\s*:?\s*(?P<value>\d[\d.]*(?:,\d+)?)", re.IGNORECASE)
@@ -93,10 +94,15 @@ def parse_detail(markdown: str, fallback_title: str = "Listing sin título", url
     expenses = _decimal(expenses_match.group("value")) if expenses_match else None
     contact = "public_contact_indicator" if re.search(r"whatsapp|contactar|tel[eé]fono|email", lower) else None
     external_id = None
+    availability = None
+    if re.search(r"\b(alquilado|vendido|reservado|retirado)\b", lower):
+        availability = "unavailable"
+    elif re.search(r"\b(disponible|activo|publicado|en alquiler|en venta)\b", lower):
+        availability = "available"
     if url:
         id_match = re.search(r"(?:MLA[-_]?|--)(\d{6,})", url, re.IGNORECASE)
         external_id = id_match.group(1) if id_match else None
-    return ParsedDetail(title, operation, price, currency, area_m2, address, expenses, contact, external_id)
+    return ParsedDetail(title, operation, price, currency, area_m2, address, expenses, contact, external_id, availability)
 
 
 def extract_detail_links(markdown: str, allowed_domains: tuple[str, ...], limit: int) -> tuple[str, ...]:
@@ -127,5 +133,6 @@ def listing_from_detail(source: str, url: str, parsed: ParsedDetail, raw_markdow
         external_id=parsed.external_id,
         expenses=parsed.expenses,
         contact=parsed.contact,
+        availability=parsed.availability,
         raw={"page_kind": PageKind.DETAIL.value, "markdown": raw_markdown[:4000]},
     )
