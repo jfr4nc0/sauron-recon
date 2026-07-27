@@ -64,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
             tuple(name.strip() for name in args.sources.split(",") if name.strip()),
             max_results=max(1, min(args.limit, 50)),
             scrape_details=args.scrape_details,
+            max_detail_pages=max(1, min(args.limit, 5)),
         )
     else:
         sources = (InMemorySource("offline-fixture"),)

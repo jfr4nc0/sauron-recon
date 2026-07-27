@@ -25,7 +25,7 @@ class Response:
 def test_firecrawl_source_filters_domains_and_maps_search_results():
     def opener(request, timeout):
         return Response({"success": True, "data": [
-            {"url": "https://www.zonaprop.com.ar/l/1", "title": "Local", "description": "USD 1.200, 80 m2"},
+            {"url": "https://www.zonaprop.com.ar/propiedades/clasificado/alcllcin-local-en-alquiler-59131762.html", "title": "Local", "description": "USD 1.200, 80 m2"},
             {"url": "https://example.org/not-allowed", "title": "No", "description": "USD 1"},
         ]})
 

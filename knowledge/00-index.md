@@ -30,3 +30,4 @@ Esta vault es la capa de conocimiento durable del proyecto y la referencia para 
 - [[07-roadmap/phase-2-extraction-history]] — extracción real, histórico y reportes.
 - [[07-roadmap/phase-3-resilience]] — rate limiting, circuit breaker y desapariciones seguras.
 - [[07-roadmap/phase-4-portal-adapters]] — adapters explícitos y fallback por portal.
+- [[07-roadmap/phase-5-contractual-detail-parsing]] — clasificación y extracción de avisos individuales.

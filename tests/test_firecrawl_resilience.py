@@ -24,8 +24,8 @@ def test_detail_failure_does_not_drop_other_listings():
     def opener(request, timeout):
         if request.full_url.endswith("/v1/search"):
             return Response({"success": True, "data": [
-                {"url": "https://zonaprop.com.ar/l/1", "title": "A", "description": "USD 1"},
-                {"url": "https://zonaprop.com.ar/l/2", "title": "B", "description": "USD 2"},
+                {"url": "https://zonaprop.com.ar/propiedades/clasificado/alcllcin-local-a-1.html", "title": "A", "description": "USD 1"},
+                {"url": "https://zonaprop.com.ar/propiedades/clasificado/alcllcin-local-b-2.html", "title": "B", "description": "USD 2"},
             ]})
         raise RuntimeError("detail unavailable")
 

@@ -8,19 +8,9 @@ from urllib.parse import urlsplit
 
 from sauron_recon.domain.models import Listing, SearchCriteria
 
-from .firecrawl_client import FirecrawlClient, FirecrawlError
+from .detail_parser import PageKind, classify_url, extract_detail_links, listing_from_detail, parse_detail
+from .firecrawl_client import FirecrawlClient
 from .resilience import CircuitBreaker, RateLimiter
-
-_PRICE_RE = re.compile(r"(?:USD|US\$|U\$S|\$)\s*([\d.,]+)", re.IGNORECASE)
-_AREA_RE = re.compile(r"([\d.,]+)\s*m(?:2|²)", re.IGNORECASE)
-
-
-def _decimal(raw: str) -> Decimal | None:
-    cleaned = raw.replace(".", "").replace(",", ".")
-    try:
-        return Decimal(cleaned)
-    except Exception:
-        return None
 
 
 def criteria_query(criteria: SearchCriteria) -> str:
@@ -38,6 +28,7 @@ class FirecrawlSource:
     )
     max_results: int = 10
     scrape_details: bool = False
+    max_detail_pages: int = 5
     rate_limiter: RateLimiter = field(default_factory=lambda: RateLimiter(min_interval_seconds=0.25))
     circuit_breaker: CircuitBreaker = field(default_factory=CircuitBreaker)
     query_builder: Callable[[SearchCriteria], str] | None = None
@@ -66,41 +57,63 @@ class FirecrawlSource:
             url = result["url"]
             if not self._allowed(url):
                 continue
-            title = str(result.get("title") or "Listing sin título").strip()
-            description = str(result.get("description") or "").strip()
-            markdown = description
-            if self.scrape_details:
-                try:
-                    self.circuit_breaker.before_call()
-                    self.rate_limiter.wait()
-                    details = self.client.scrape(url).get("data", {}) or {}
-                    self.circuit_breaker.record_success()
-                    markdown = str(details.get("markdown") or description)
-                except Exception as exc:
-                    self.circuit_breaker.record_failure()
-                    self.last_warnings.append(f"{url}: {type(exc).__name__}: {exc}")
-            listings.append(Listing(
-                source=self.name,
-                url=url,
-                title=title,
-                operation=criteria.operation if criteria.operation != "rent_or_sale" else None,
-                zone=criteria.zones[0] if criteria.zones else None,
-                price=self._price(markdown),
-                area_m2=self._area(markdown),
-                raw={"description": description, "markdown": markdown[:4000]},
-            ))
+            kind = classify_url(url)
+            if kind is PageKind.CATEGORY:
+                if not self.scrape_details:
+                    self.last_warnings.append(f"category_skipped:{url}")
+                    continue
+                listings.extend(self._expand_category(url, result, criteria))
+                continue
+            if kind is PageKind.UNKNOWN:
+                self.last_warnings.append(f"unknown_page_kind:{url}")
+                continue
+            listings.append(self._parse_result(url, result, criteria))
         return listings
+
+    def _parse_result(self, url: str, result: dict, criteria: SearchCriteria) -> Listing:
+        title = str(result.get("title") or "Listing sin título").strip()
+        markdown = str(result.get("description") or "").strip()
+        if self.scrape_details:
+            scraped = self._scrape_markdown(url)
+            if scraped is not None:
+                markdown = scraped
+        parsed = parse_detail(markdown, fallback_title=title)
+        if parsed.operation is None and criteria.operation != "rent_or_sale":
+            parsed = parsed.__class__(parsed.title, criteria.operation, parsed.price, parsed.currency, parsed.area_m2, parsed.address)
+        return listing_from_detail(self.name, url, parsed, markdown)
+
+    def _expand_category(self, url: str, result: dict, criteria: SearchCriteria) -> list[Listing]:
+        markdown = self._scrape_markdown(url)
+        if markdown is None:
+            return []
+        links = extract_detail_links(markdown, self.allowed_domains, self.max_detail_pages)
+        if not links:
+            self.last_warnings.append(f"category_without_detail_links:{url}")
+            return []
+        listings: list[Listing] = []
+        for detail_url in links:
+            detail_markdown = self._scrape_markdown(detail_url)
+            if detail_markdown is None:
+                continue
+            parsed = parse_detail(detail_markdown, fallback_title=str(result.get("title") or "Listing sin título"))
+            if parsed.operation is None and criteria.operation != "rent_or_sale":
+                parsed = parsed.__class__(parsed.title, criteria.operation, parsed.price, parsed.currency, parsed.area_m2, parsed.address)
+            listings.append(listing_from_detail(self.name, detail_url, parsed, detail_markdown))
+        return listings
+
+    def _scrape_markdown(self, url: str) -> str | None:
+        try:
+            self.circuit_breaker.before_call()
+            self.rate_limiter.wait()
+            details = self.client.scrape(url).get("data", {}) or {}
+            self.circuit_breaker.record_success()
+            markdown = details.get("markdown")
+            return str(markdown) if markdown else None
+        except Exception as exc:
+            self.circuit_breaker.record_failure()
+            self.last_warnings.append(f"{url}: {type(exc).__name__}: {exc}")
+            return None
 
     def _allowed(self, url: str) -> bool:
         hostname = (urlsplit(url).hostname or "").lower().removeprefix("www.")
         return any(hostname == domain or hostname.endswith(f".{domain}") for domain in self.allowed_domains)
-
-    @staticmethod
-    def _price(text: str) -> Decimal | None:
-        match = _PRICE_RE.search(text)
-        return _decimal(match.group(1)) if match else None
-
-    @staticmethod
-    def _area(text: str) -> Decimal | None:
-        match = _AREA_RE.search(text)
-        return _decimal(match.group(1)) if match else None

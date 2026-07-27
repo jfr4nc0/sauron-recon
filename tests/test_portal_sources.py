@@ -27,7 +27,15 @@ def test_portal_adapters_have_isolated_domains_and_queries():
         requests.append(payload)
         query = payload["query"]
         domain = "zonaprop.com.ar" if "zonaprop" in query else "argenprop.com" if "argenprop" in query else "inmuebles.mercadolibre.com.ar"
-        return Response({"success": True, "data": [{"url": f"https://{domain}/l/1", "title": "Local"}]})
+        path = {
+            "zonaprop.com.ar": "/propiedades/clasificado/alcllcin-local-59131762.html",
+            "argenprop.com": "/local-en-alquiler-en-palermo--20056658",
+            "inmuebles.mercadolibre.com.ar": "/inmueble.mercadolibre.com.ar/MLA-1846955251-local-en-alquiler-en-soler-y-coronel-diaz-_JM",
+        }[domain]
+        return Response({"success": True, "data": [{"url": (
+            "https://inmueble.mercadolibre.com.ar/MLA-1846955251-local-en-alquiler-en-soler-y-coronel-diaz-_JM"
+            if domain.startswith("inmuebles") else f"https://{domain}{path}"
+        ), "title": "Local"}]})
 
     client = FirecrawlClient("http://firecrawl", opener=opener, sleeper=lambda _: None)
     criteria = SearchCriteria(zones=("Palermo",))
