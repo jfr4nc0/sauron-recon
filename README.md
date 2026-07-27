@@ -26,7 +26,14 @@ sauron-recon health
 sauron-recon search --dry-run --criteria '{"operation":"rent","zones":["Palermo"],"max_price":1500,"min_area_m2":50}'
 ```
 
-El núcleo actual es determinista y usa fixtures/in-memory para validar contratos, deduplicación, scoring, aislamiento de fallos e idempotencia SQLite antes de conectar fuentes externas.
+El núcleo actual es determinista y usa fixtures/in-memory para validar contratos, deduplicación, scoring, aislamiento de fallos e idempotencia SQLite antes de conectar fuentes externas. El adapter Firecrawl ya está conectado al daemon compartido existente de Hermes (`FIRECRAWL_API_URL`, por defecto `http://localhost:3002`):
+
+```bash
+sauron-recon search --live --dry-run --limit 10 \
+  --criteria '{"operation":"rent","zones":["Palermo"]}'
+```
+
+`--scrape-details` habilita una segunda extracción sólo para URLs permitidas por la allowlist.
 
 ## Seguridad y cumplimiento
 

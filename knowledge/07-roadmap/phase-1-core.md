@@ -2,7 +2,7 @@
 
 ## Estado
 
-En implementación inicial.
+Completada la primera implementación y verificada localmente. El daemon Firecrawl existente responde en `http://localhost:3002` y Hermes tiene `web` habilitado mediante `FIRECRAWL_API_URL` en su configuración persistente.
 
 ## Alcance
 

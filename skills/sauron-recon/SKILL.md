@@ -28,9 +28,11 @@ Desde la raíz de la distribución:
 
 ```bash
 python -m sauron_recon.entrypoints.cli health
-python -m sauron_recon.entrypoints.cli search --dry-run \
+python -m sauron_recon.entrypoints.cli search --live --dry-run \
   --criteria '{"operation":"rent","zones":["Palermo"],"max_price":1500,"min_area_m2":50}'
 ```
+
+`--live` usa el daemon Firecrawl compartido configurado en `FIRECRAWL_API_URL` o, por defecto, `http://localhost:3002`. `--scrape-details` realiza una extracción adicional sólo sobre dominios permitidos.
 
 ## Guardrails
 
