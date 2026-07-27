@@ -36,3 +36,13 @@ def test_sqlite_repository_detects_new_and_changed_listings(tmp_path):
     assert second_changes[0].changed_fields == ("price",)
     assert repository.count_runs() == 2
     assert repository.count_observations() == 2
+
+
+def test_sqlite_repository_persists_duplicate_candidates(tmp_path):
+    first = Listing(source="zonaprop", url="https://zonaprop.example/1", title="Local Serrano Palermo", address="Serrano 1300, Palermo", area_m2=Decimal("100"))
+    second = Listing(source="argenprop", url="https://argenprop.example/2", title="Local Comercial Serrano Palermo", address="Serrano 1300, Palermo", area_m2=Decimal("100"))
+    result = SearchListings((InMemorySource("zonaprop", [first]), InMemorySource("argenprop", [second]))).execute(SearchCriteria())
+    repository = SQLiteListingRepository(tmp_path / "sauron.db")
+    repository.save_run(result)
+    assert len(result.duplicate_candidates) == 1
+    assert repository.count_duplicate_candidates() == 1

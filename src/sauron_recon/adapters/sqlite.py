@@ -9,6 +9,7 @@ from pathlib import Path
 
 from sauron_recon.application.ports import SearchResult
 from sauron_recon.domain.changes import ListingChange
+from sauron_recon.domain.dedup import DuplicateCandidate
 from sauron_recon.domain.models import Listing
 
 
@@ -57,6 +58,15 @@ CREATE TABLE IF NOT EXISTS observations (
 );
 CREATE INDEX IF NOT EXISTS observations_identity_time
   ON observations(identity, observed_at DESC);
+CREATE TABLE IF NOT EXISTS duplicate_candidates (
+  run_id TEXT NOT NULL REFERENCES runs(run_id),
+  candidate_key TEXT NOT NULL,
+  first_identity TEXT NOT NULL,
+  second_identity TEXT NOT NULL,
+  reasons_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (run_id, candidate_key)
+);
 """
 
 
@@ -83,6 +93,11 @@ def _changed_fields(previous: sqlite3.Row | None, listing: Listing) -> tuple[str
         "availability": listing.availability,
     }
     return tuple(field for field, value in current.items() if previous[field] != value)
+
+
+def _candidate_key(candidate: DuplicateCandidate) -> str:
+    identities = "|".join(sorted((candidate.first.identity, candidate.second.identity)))
+    return hashlib.sha256(identities.encode("utf-8")).hexdigest()
 
 
 class SQLiteListingRepository:
@@ -145,6 +160,14 @@ class SQLiteListingRepository:
                      str(listing.area_m2) if listing.area_m2 is not None else None, listing.address, listing.external_id,
                      str(listing.expenses) if listing.expenses is not None else None, listing.contact, listing.availability),
                 )
+            for candidate in result.duplicate_candidates:
+                connection.execute(
+                    """INSERT INTO duplicate_candidates
+                    (run_id, candidate_key, first_identity, second_identity, reasons_json, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    (result.run_id, _candidate_key(candidate), candidate.first.identity, candidate.second.identity,
+                     json.dumps(candidate.reasons), result.started_at.isoformat()),
+                )
         return tuple(changes)
 
     def mark_disappeared(self, result: SearchResult, complete_sources: set[str]) -> tuple[ListingChange, ...]:
@@ -199,3 +222,8 @@ class SQLiteListingRepository:
         self.initialize()
         with sqlite3.connect(self.path) as connection:
             return connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
+
+    def count_duplicate_candidates(self) -> int:
+        self.initialize()
+        with sqlite3.connect(self.path) as connection:
+            return connection.execute("SELECT COUNT(*) FROM duplicate_candidates").fetchone()[0]

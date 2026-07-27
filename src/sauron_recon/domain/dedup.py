@@ -14,15 +14,16 @@ class DuplicateCandidate:
     reasons: tuple[str, ...]
 
 
-def _normalize(value: str | None) -> str:
+def normalize_address(value: str | None) -> str:
     if not value:
         return ""
     text = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+    text = re.sub(r"\b(caba|capital federal|argentina)\b", " ", text)
     return re.sub(r"[^a-z0-9]+", " ", text).strip()
 
 
 def _tokens(value: str | None) -> set[str]:
-    return {token for token in _normalize(value).split() if len(token) > 2}
+    return {token for token in normalize_address(value).split() if len(token) > 2}
 
 
 def find_duplicate_candidates(listings: tuple[Listing, ...]) -> tuple[DuplicateCandidate, ...]:
@@ -32,7 +33,7 @@ def find_duplicate_candidates(listings: tuple[Listing, ...]) -> tuple[DuplicateC
             if first.source == second.source:
                 continue
             reasons: list[str] = []
-            if first.address and second.address and _normalize(first.address) == _normalize(second.address):
+            if first.address and second.address and normalize_address(first.address) == normalize_address(second.address):
                 reasons.append("same_address")
             if first.area_m2 is not None and second.area_m2 is not None and first.area_m2 == second.area_m2:
                 reasons.append("same_area")
