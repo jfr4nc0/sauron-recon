@@ -34,3 +34,4 @@ Esta vault es la capa de conocimiento durable del proyecto y la referencia para 
 - [[07-roadmap/phase-6-listing-enrichment]] — IDs, expensas, contacto público y fingerprint ampliado.
 - [[07-roadmap/phase-7-availability-dedup]] — disponibilidad y candidatos de duplicado cross-source.
 - [[07-roadmap/phase-8-persistent-duplicate-candidates]] — persistencia histórica y normalización de direcciones.
+- [[07-roadmap/phase-9-telegram-wizard-pdf]] — wizard `/start`, criterios extendidos y PDF horario.

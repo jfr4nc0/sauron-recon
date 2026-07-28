@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "jfr4nc0"}]
-dependencies = []
+dependencies = ["reportlab>=4.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]

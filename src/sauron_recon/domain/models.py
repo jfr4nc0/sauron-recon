@@ -30,6 +30,15 @@ class SearchCriteria:
     min_area_m2: Decimal | None = None
     max_area_m2: Decimal | None = None
     property_type: str = "local"
+    rooms: int | None = None
+    bathrooms: int | None = None
+    min_price_ars: Decimal | None = None
+    max_price_ars: Decimal | None = None
+    min_price_usd: Decimal | None = None
+    max_price_usd: Decimal | None = None
+    needs_three_phase: bool | None = None
+    locality: str | None = None
+    requirements: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.operation not in {"rent", "sale", "rent_or_sale"}:
@@ -38,6 +47,16 @@ class SearchCriteria:
             raise ValueError("min_price cannot exceed max_price")
         if self.min_area_m2 is not None and self.max_area_m2 is not None and self.min_area_m2 > self.max_area_m2:
             raise ValueError("min_area_m2 cannot exceed max_area_m2")
+        for minimum, maximum, label in (
+            (self.min_price_ars, self.max_price_ars, "ARS price"),
+            (self.min_price_usd, self.max_price_usd, "USD price"),
+        ):
+            if minimum is not None and maximum is not None and minimum > maximum:
+                raise ValueError(f"min_{label} cannot exceed max_{label}")
+        if self.rooms is not None and self.rooms < 0:
+            raise ValueError("rooms cannot be negative")
+        if self.bathrooms is not None and self.bathrooms < 0:
+            raise ValueError("bathrooms cannot be negative")
 
 
 @dataclass(frozen=True)

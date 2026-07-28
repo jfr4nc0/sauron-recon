@@ -1,0 +1,8 @@
+{
+  "name": "sauron-recon-hourly-search-pdf-preview",
+  "schedule": "every 1h",
+  "prompt": "Load the confirmed Sauron Recon criteria from the local runtime store. Read the knowledge context pack. Run the deterministic search, preserve per-source failures, persist idempotently, select only new or changed listings since the last successful run, render a deduplicated PDF with public descriptions and links, and report coverage. Do not send externally, do not mark disappearances unless a source explicitly declares a complete snapshot, and do not treat empty/partial responses as empty inventories.",
+  "skills": ["sauron-recon"],
+  "workdir": ".",
+  "deliver": "local"
+}

@@ -12,6 +12,7 @@ from sauron_recon.adapters.in_memory import InMemorySource
 from sauron_recon.adapters.portal_sources import build_portal_sources
 from sauron_recon.adapters.sqlite import SQLiteListingRepository
 from sauron_recon.application.reporting import render_report
+from sauron_recon.application.pdf_reporting import render_pdf
 from sauron_recon.application.use_cases import SearchListings
 from sauron_recon.domain.models import SearchCriteria
 
@@ -27,6 +28,15 @@ def parse_criteria(raw: str) -> SearchCriteria:
         min_area_m2=Decimal(str(data["min_area_m2"])) if data.get("min_area_m2") is not None else None,
         max_area_m2=Decimal(str(data["max_area_m2"])) if data.get("max_area_m2") is not None else None,
         property_type=data.get("property_type", "local"),
+        rooms=data.get("rooms"),
+        bathrooms=data.get("bathrooms"),
+        min_price_ars=Decimal(str(data["min_price_ars"])) if data.get("min_price_ars") is not None else None,
+        max_price_ars=Decimal(str(data["max_price_ars"])) if data.get("max_price_ars") is not None else None,
+        min_price_usd=Decimal(str(data["min_price_usd"])) if data.get("min_price_usd") is not None else None,
+        max_price_usd=Decimal(str(data["max_price_usd"])) if data.get("max_price_usd") is not None else None,
+        needs_three_phase=data.get("needs_three_phase"),
+        locality=data.get("locality"),
+        requirements=tuple(data.get("requirements", [])),
     )
 
 
@@ -40,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("--limit", type=int, default=10, help="maximum Firecrawl results")
     search.add_argument("--scrape-details", action="store_true", help="scrape each allowed result URL")
     search.add_argument("--report", action="store_true", help="render a Markdown report")
+    search.add_argument("--pdf", help="write a deduplicated PDF report to this path")
     search.add_argument("--sources", default="zonaprop,argenprop,mercadolibre", help="comma-separated portal adapters")
     subparsers.add_parser("health", help="check that the deterministic core imports")
     args = parser.parse_args(argv)
@@ -83,6 +94,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.report:
         print(render_report(result, changes))
+    if args.pdf:
+        print(str(render_pdf(result, changes, args.pdf)))
+    if args.report or args.pdf:
         return 0
 
     print(json.dumps({
