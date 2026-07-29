@@ -1,0 +1,5 @@
+name: sauron-recon-telegram
+version: 0.1.0
+description: Connect Sauron Recon's deterministic Telegram requirements wizard to Hermes Gateway.
+hooks:
+  - pre_gateway_dispatch

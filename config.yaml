@@ -12,3 +12,6 @@ terminal:
   timeout: 180
 security:
   redact_secrets: true
+plugins:
+  enabled:
+    - sauron-recon-telegram

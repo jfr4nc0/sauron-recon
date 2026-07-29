@@ -2,7 +2,7 @@
 
 ## Dry-run
 
-1. Copiar `.env.example` a configuración local fuera del repositorio.
+1. Copiar `.env.template` a la configuración del perfil Hermes fuera del repositorio y completar sólo las variables necesarias.
 2. Ejecutar `sauron-recon health`.
 3. Validar criterios JSON con `sauron-recon search --dry-run --criteria '{...}'`.
 4. Revisar cobertura, errores y deduplicación antes de habilitar notificaciones.

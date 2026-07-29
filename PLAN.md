@@ -141,7 +141,7 @@ Cada job tendrá timeout, reintento controlado, ventana de novedades, quiet hour
 
 ## 9. Seguridad y privacidad
 
-- `.env.example` documenta variables; `.env`, tokens Telegram, cookies, bases y reportes locales quedan ignorados.
+- `.env.template` documenta variables; `.env`, tokens Telegram, cookies, bases y reportes locales quedan ignorados.
 - Allowlist de dominios para evitar SSRF y navegación accidental a destinos internos.
 - Sanitizar HTML/Markdown antes de enviarlo a Telegram.
 - No persistir datos personales innecesarios; teléfonos y nombres de contacto se tratan como PII y se pueden omitir por configuración.
@@ -201,7 +201,7 @@ sauron-recon/
 ├── README.md
 ├── PLAN.md
 ├── pyproject.toml
-├── .env.example
+├── .env.template
 ├── .gitignore
 ├── src/sauron_recon/
 │   ├── domain/

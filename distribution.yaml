@@ -17,6 +17,22 @@ env_requires:
     description: "Telegram bot token used by the gateway/runtime delivery layer"
     required: false
     default: ""
+  - name: TELEGRAM_ALLOWED_USERS
+    description: "Comma-separated numeric Telegram user IDs allowed to use the bot"
+    required: false
+    default: ""
+  - name: TELEGRAM_ALLOWED_CHATS
+    description: "Optional comma-separated Telegram chat IDs allowed for group/channel operation"
+    required: false
+    default: ""
+  - name: TELEGRAM_GROUP_ALLOWED_CHATS
+    description: "Optional Telegram group chat IDs whose unmentioned messages may be observed"
+    required: false
+    default: ""
+  - name: TELEGRAM_OBSERVE_UNMENTIONED_GROUP_MESSAGES
+    description: "Whether allowlisted unmentioned Telegram group messages are recorded as context"
+    required: false
+    default: "false"
   - name: SAURON_RECON_DATA_DIR
     description: "Directory for local SQLite state and generated reports"
     required: false
@@ -31,7 +47,9 @@ distribution_owned:
   - knowledge/
   - src/
   - tests/
+  - plugins/sauron_recon_telegram/
   - pyproject.toml
   - README.md
   - PLAN.md
   - .env.example
+  - .env.template
