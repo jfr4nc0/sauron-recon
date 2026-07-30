@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Sauron Recon" width="320">
+  <img src="assets/logo.png" alt="Sauron Recon" width="600">
 </p>
 
 # sauron-recon
