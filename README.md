@@ -1,7 +1,7 @@
 # Sauron-Recon
 
 <p align="center">
-  <img src="assets/logo.png" alt="Sauron Recon" width="600">
+  <img src="assets/logo.png" alt="Sauron Recon" width="500">
 </p>
 
 Profile Distribution de Hermes para descubrir locales comerciales en alquiler o venta, normalizar resultados de múltiples fuentes, detectar novedades y enviar reportes por Telegram.
