@@ -51,6 +51,23 @@ sauron-recon search --feed ./runtime/inmobiliaria.csv \\
   --criteria '{"operation":"rent","zones":["Palermo"]}' --dry-run
 ```
 
+Para una página pública autorizada que requiere renderizado JavaScript, puede
+usarse Crawl4AI de forma opcional y local:
+
+```bash
+pip install -e '.[crawler]'
+crawl4ai-setup
+sauron-recon search \\
+  --crawl4ai-url 'https://portal.example/busqueda/locales' \\
+  --criteria '{"operation":"rent","zones":["Palermo"]}' --dry-run
+```
+
+El adapter valida allowlist de dominio y `robots.txt` antes de cada página,
+falla cerrado si no puede verificar la autorización y no usa proxies,
+cookies personales, stealth ni automatización de login. `undetected-chromedriver`
+no está integrado: no se utiliza para evadir controles anti-bot, CAPTCHA,
+autenticación ni restricciones del portal.
+
 Desde Telegram, `/setup` inicia el wizard de conectores. Permite seleccionar
 una instalación sólo local, ngrok, Cloudflare Tunnel, dominio HTTPS propio o
 configuración manual. La selección se persiste sólo en el runtime local y no

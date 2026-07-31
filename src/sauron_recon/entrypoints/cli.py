@@ -6,7 +6,10 @@ import os
 import sys
 from decimal import Decimal
 from pathlib import Path
+from urllib.parse import urlsplit
 
+from sauron_recon.adapters.crawl4ai_client import Crawl4AIClient
+from sauron_recon.adapters.crawl4ai_source import Crawl4AIDynamicSource
 from sauron_recon.adapters.firecrawl_client import FirecrawlClient
 from sauron_recon.adapters.feed_source import FeedSource
 from sauron_recon.adapters.in_memory import InMemorySource
@@ -54,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("--pdf", help="write a deduplicated PDF report to this path")
     search.add_argument("--sources", default="zonaprop,argenprop,mercadolibre", help="comma-separated portal adapters")
     search.add_argument("--feed", action="append", default=[], help="local CSV/JSON/XML authorized feed; repeatable")
+    search.add_argument("--crawl4ai-url", action="append", default=[], help="authorized public search URL rendered by local Crawl4AI; repeatable")
     subparsers.add_parser("health", help="check that the deterministic core imports")
     args = parser.parse_args(argv)
 
@@ -71,6 +75,19 @@ def main(argv: list[str] | None = None) -> int:
         FeedSource(path, name=f"feed:{Path(path).stem}")
         for path in args.feed
     )
+    crawl_sources = []
+    for search_url in args.crawl4ai_url:
+        parsed = urlsplit(search_url)
+        host = (parsed.hostname or "").lower().removeprefix("www.")
+        if parsed.scheme not in {"http", "https"} or not host:
+            print(json.dumps({"ok": False, "error": f"invalid --crawl4ai-url: {search_url}"}), file=sys.stderr)
+            return 2
+        crawl_sources.append(Crawl4AIDynamicSource(
+            client=Crawl4AIClient(),
+            name=f"crawl4ai:{host}",
+            allowed_domains=(host,),
+            search_url_builder=lambda _criteria, url=search_url: url,
+        ))
     if args.live:
         client = FirecrawlClient(
             base_url=os.getenv("FIRECRAWL_API_URL", "http://localhost:3002"),
@@ -83,9 +100,9 @@ def main(argv: list[str] | None = None) -> int:
             scrape_details=args.scrape_details,
             max_detail_pages=max(1, min(args.limit, 5)),
         )
-        sources = (*feed_sources, *portal_sources)
-    elif feed_sources:
-        sources = feed_sources
+        sources = (*feed_sources, *crawl_sources, *portal_sources)
+    elif feed_sources or crawl_sources:
+        sources = (*feed_sources, *crawl_sources)
     else:
         sources = (InMemorySource("offline-fixture"),)
 
