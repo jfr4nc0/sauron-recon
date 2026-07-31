@@ -44,6 +44,13 @@ sauron-recon search --live --sources zonaprop,argenprop,mercadolibre \\
   --criteria '{"operation":"rent","zones":["Palermo"]}'
 ```
 
+También se pueden combinar búsquedas públicas con feeds autorizados locales:
+
+```bash
+sauron-recon search --feed ./runtime/inmobiliaria.csv \\
+  --criteria '{"operation":"rent","zones":["Palermo"]}' --dry-run
+```
+
 Desde Telegram, `/setup` inicia el wizard de conectores. Permite seleccionar
 una instalación sólo local, ngrok, Cloudflare Tunnel, dominio HTTPS propio o
 configuración manual. La selección se persiste sólo en el runtime local y no
@@ -58,3 +65,5 @@ Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se
 El proyecto no evade CAPTCHAs, autenticación ni controles anti-bot. Las fuentes deben consultarse respetando sus términos, robots.txt, límites de frecuencia y permisos de automatización.
 
 El registro de capacidades de fuentes separa integraciones por API, feed autorizado, páginas públicas compatibles con Firecrawl, importación manual y fuentes deshabilitadas. Ver [LICENSE](LICENSE), [ADR-004](knowledge/04-decisions/adr-004-free-software-mit.md) y el [relevamiento de portales](knowledge/05-sources/portal-audit-2026-07-31.md).
+
+En Telegram, `/sources` muestra el estado de cada fuente. `/setup` configura el conector OAuth HTTPS sin pedir secretos por el chat. El cliente OAuth oficial de MercadoLibre y el callback local one-shot están en `src/sauron_recon/adapters/mercadolibre_oauth.py`; requieren que el usuario configure su propia aplicación y `redirect_uri` HTTPS.

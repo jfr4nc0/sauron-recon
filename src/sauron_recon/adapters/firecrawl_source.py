@@ -33,6 +33,7 @@ class FirecrawlSource:
     circuit_breaker: CircuitBreaker = field(default_factory=CircuitBreaker)
     query_builder: Callable[[SearchCriteria], str] | None = None
     fallback_builders: tuple[Callable[[SearchCriteria], str], ...] = ()
+    url_classifier: Callable[[str], PageKind] | None = None
     snapshot_complete: bool = False
     last_warnings: list[str] = field(default_factory=list, init=False)
 
@@ -57,7 +58,7 @@ class FirecrawlSource:
             url = result["url"]
             if not self._allowed(url):
                 continue
-            kind = classify_url(url)
+            kind = self._classify_url(url)
             if kind is PageKind.CATEGORY:
                 if not self.scrape_details:
                     self.last_warnings.append(f"category_skipped:{url}")
@@ -86,7 +87,7 @@ class FirecrawlSource:
         markdown = self._scrape_markdown(url)
         if markdown is None:
             return []
-        links = extract_detail_links(markdown, self.allowed_domains, self.max_detail_pages)
+        links = extract_detail_links(markdown, self.allowed_domains, self.max_detail_pages, self.url_classifier)
         if not links:
             self.last_warnings.append(f"category_without_detail_links:{url}")
             return []
@@ -117,3 +118,6 @@ class FirecrawlSource:
     def _allowed(self, url: str) -> bool:
         hostname = (urlsplit(url).hostname or "").lower().removeprefix("www.")
         return any(hostname == domain or hostname.endswith(f".{domain}") for domain in self.allowed_domains)
+
+    def _classify_url(self, url: str) -> PageKind:
+        return self.url_classifier(url) if self.url_classifier is not None else classify_url(url)

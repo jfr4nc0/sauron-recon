@@ -93,3 +93,14 @@ def test_bridge_setup_persists_connector_choice_without_secrets(tmp_path, monkey
     payload = (tmp_path / "wizard.json").read_text(encoding="utf-8")
     assert '"provider": "ngrok"' in payload
     assert "secret" not in payload.lower()
+
+
+def test_bridge_reports_source_capabilities(tmp_path, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "42")
+    bridge = TelegramWizardBridge(tmp_path / "wizard.json")
+
+    reply = bridge.handle(_event("/sources"))
+
+    assert reply is not None
+    assert "inmuebles-clarin: candidate" in reply["reply"]
+    assert "facebook-marketplace: blocked" in reply["reply"]

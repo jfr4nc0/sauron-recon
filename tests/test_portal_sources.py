@@ -59,3 +59,23 @@ def test_factory_rejects_unknown_portal():
         assert "unknown portal source" in str(exc)
     else:
         raise AssertionError("unknown source was accepted")
+
+
+def test_candidate_portals_build_as_domain_allowlisted_sources():
+    client = FirecrawlClient("http://firecrawl")
+    sources = build_portal_sources(client, ("inmuebles-clarin", "zetaprop", "servidos"))
+
+    assert [source.name for source in sources] == ["inmuebles-clarin", "zetaprop", "servidos"]
+    assert sources[0].allowed_domains == ("inmuebles.clarin.com",)
+    assert sources[1].allowed_domains == ("zetaprop.com.ar",)
+
+
+def test_blocked_or_unknown_sources_are_not_silently_added():
+    client = FirecrawlClient("http://firecrawl")
+
+    try:
+        build_portal_sources(client, ("facebook-marketplace",))
+    except ValueError as exc:
+        assert "unknown portal source" in str(exc)
+    else:
+        raise AssertionError("blocked source must not be silently enabled")

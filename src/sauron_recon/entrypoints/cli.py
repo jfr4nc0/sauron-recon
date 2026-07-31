@@ -8,6 +8,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from sauron_recon.adapters.firecrawl_client import FirecrawlClient
+from sauron_recon.adapters.feed_source import FeedSource
 from sauron_recon.adapters.in_memory import InMemorySource
 from sauron_recon.adapters.portal_sources import build_portal_sources
 from sauron_recon.adapters.sqlite import SQLiteListingRepository
@@ -52,6 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     search.add_argument("--report", action="store_true", help="render a Markdown report")
     search.add_argument("--pdf", help="write a deduplicated PDF report to this path")
     search.add_argument("--sources", default="zonaprop,argenprop,mercadolibre", help="comma-separated portal adapters")
+    search.add_argument("--feed", action="append", default=[], help="local CSV/JSON/XML authorized feed; repeatable")
     subparsers.add_parser("health", help="check that the deterministic core imports")
     args = parser.parse_args(argv)
 
@@ -65,18 +67,25 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"ok": False, "error": str(exc)}), file=sys.stderr)
         return 2
 
+    feed_sources = tuple(
+        FeedSource(path, name=f"feed:{Path(path).stem}")
+        for path in args.feed
+    )
     if args.live:
         client = FirecrawlClient(
             base_url=os.getenv("FIRECRAWL_API_URL", "http://localhost:3002"),
             api_key=os.getenv("FIRECRAWL_API_KEY") or None,
         )
-        sources = build_portal_sources(
+        portal_sources = build_portal_sources(
             client,
             tuple(name.strip() for name in args.sources.split(",") if name.strip()),
             max_results=max(1, min(args.limit, 50)),
             scrape_details=args.scrape_details,
             max_detail_pages=max(1, min(args.limit, 5)),
         )
+        sources = (*feed_sources, *portal_sources)
+    elif feed_sources:
+        sources = feed_sources
     else:
         sources = (InMemorySource("offline-fixture"),)
 

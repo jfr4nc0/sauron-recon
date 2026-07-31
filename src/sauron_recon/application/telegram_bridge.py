@@ -11,6 +11,7 @@ from typing import Any
 from sauron_recon.domain.models import SearchCriteria
 
 from .connectors import ConnectorSetupWizard
+from .source_registry import SourceCapabilityRegistry
 from .wizard import RequirementsWizard, WizardStep
 
 
@@ -91,6 +92,12 @@ class TelegramWizardBridge:
                 state["setup"] = setups
                 self._save(state)
                 return self._handled(setup.start())
+
+            if command == "sources":
+                lines = ["Estado de fuentes configuradas:"]
+                for source in SourceCapabilityRegistry.all():
+                    lines.append(f"- {source.name}: {source.status.value} ({', '.join(mode.value for mode in source.modes)})")
+                return self._handled("\n".join(lines))
 
             if command == "cancel" and (key in active or key in setups):
                 active.pop(key, None)

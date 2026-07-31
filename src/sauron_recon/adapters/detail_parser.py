@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import StrEnum
@@ -105,14 +106,19 @@ def parse_detail(markdown: str, fallback_title: str = "Listing sin título", url
     return ParsedDetail(title, operation, price, currency, area_m2, address, expenses, contact, external_id, availability)
 
 
-def extract_detail_links(markdown: str, allowed_domains: tuple[str, ...], limit: int) -> tuple[str, ...]:
+def extract_detail_links(
+    markdown: str,
+    allowed_domains: tuple[str, ...],
+    limit: int,
+    classifier: Callable[[str], PageKind] | None = None,
+) -> tuple[str, ...]:
     links: list[str] = []
     for match in _TITLE_LINK_RE.finditer(markdown):
         url = match.group("url").split("#", 1)[0]
         host = (urlsplit(url).hostname or "").lower().removeprefix("www.")
         if not any(host == domain or host.endswith(f".{domain}") for domain in allowed_domains):
             continue
-        if classify_url(url) is not PageKind.DETAIL or url in links:
+        if (classifier or classify_url)(url) is not PageKind.DETAIL or url in links:
             continue
         links.append(url)
         if len(links) >= limit:
