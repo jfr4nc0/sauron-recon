@@ -10,6 +10,7 @@ from typing import Any
 
 from sauron_recon.domain.models import SearchCriteria
 
+from .connectors import ConnectorSetupWizard
 from .wizard import RequirementsWizard, WizardStep
 
 
@@ -74,6 +75,7 @@ class TelegramWizardBridge:
         with self._lock:
             state = self._load()
             active = state.get("active", {})
+            setups = state.setdefault("setup", {})
 
             if command == "start":
                 wizard = RequirementsWizard()
@@ -83,11 +85,34 @@ class TelegramWizardBridge:
                 self._save(state)
                 return self._handled(reply.text)
 
-            if command == "cancel" and key in active:
+            if command == "setup":
+                setup = ConnectorSetupWizard()
+                setups[key] = {"target": setup.target, "step": setup.step}
+                state["setup"] = setups
+                self._save(state)
+                return self._handled(setup.start())
+
+            if command == "cancel" and (key in active or key in setups):
                 active.pop(key, None)
+                setups.pop(key, None)
                 state["active"] = active
+                state["setup"] = setups
                 self._save(state)
                 return self._handled("Cancelé la configuración de búsqueda.")
+
+            if key in setups and not command:
+                setup = self._restore_setup(setups[key])
+                message, completed, connector = setup.receive(event.text)
+                if completed:
+                    setups.pop(key, None)
+                    state["setup"] = setups
+                    if connector is not None:
+                        state.setdefault("connectors", {})[key] = connector
+                else:
+                    setups[key] = {"target": setup.target, "step": setup.step}
+                    state["setup"] = setups
+                self._save(state)
+                return self._handled(message)
 
             if key not in active or command:
                 return None
@@ -198,6 +223,12 @@ class TelegramWizardBridge:
         wizard.criteria = cls._deserialize_criteria(payload.get("criteria", {}))
         wizard.step = WizardStep(payload.get("step", WizardStep.OPERATION.value))
         return wizard
+
+    @staticmethod
+    def _restore_setup(payload: dict[str, Any]) -> ConnectorSetupWizard:
+        setup = ConnectorSetupWizard(target=str(payload.get("target", "mercadolibre")))
+        setup.step = str(payload.get("step", "provider"))
+        return setup
 
     def _load(self) -> dict[str, Any]:
         try:

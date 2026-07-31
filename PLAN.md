@@ -48,6 +48,7 @@ Hermes Gateway / Telegram
 - `adapters/`: Firecrawl, HTTP/API, SQLite, Telegram/Hermes, clock y filesystem.
 - `entrypoints/`: CLI para búsqueda manual, reportes y health checks; integración de skills/prompts de Hermes.
 - `config/`: schema y ejemplos sin secretos.
+- `connectors/`: contratos y providers opcionales para OAuth HTTPS y servicios externos; no contienen secretos.
 
 ## 4. Modelo funcional
 

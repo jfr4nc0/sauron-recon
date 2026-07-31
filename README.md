@@ -44,6 +44,12 @@ sauron-recon search --live --sources zonaprop,argenprop,mercadolibre \\
   --criteria '{"operation":"rent","zones":["Palermo"]}'
 ```
 
+Desde Telegram, `/setup` inicia el wizard de conectores. Permite seleccionar
+una instalación sólo local, ngrok, Cloudflare Tunnel, dominio HTTPS propio o
+configuración manual. La selección se persiste sólo en el runtime local y no
+solicita secretos por Telegram. MercadoLibre queda habilitado únicamente
+después de completar su OAuth oficial y validar el callback HTTPS.
+
 Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se prueba como máximo un fallback específico, con rate limiting; una respuesta vacía no se interpreta como mercado vacío. `--scrape-details` habilita una segunda extracción sólo para URLs permitidas, descarta categorías como listings y expande un máximo controlado de avisos individuales; el parser extrae ID externo, expensas, disponibilidad y un indicador seguro de contacto público. Los posibles duplicados entre portales se reportan como candidatos explicables, sin fusionar automáticamente avisos, y se persisten por corrida para seguimiento histórico. El wizard Telegram `/start` normaliza operación, tipo de inmueble, ambientes, baños, superficie, trifásica, zona/localidad y rangos ARS/USD; tras confirmación puede alimentar un job horario. El PDF incluye enlaces y descripción pública limitada, y sólo recibe cambios nuevos/modificados para evitar repetir viviendas.
 
 

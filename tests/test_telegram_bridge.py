@@ -76,3 +76,20 @@ def test_bridge_does_not_bypass_authorization(tmp_path, monkeypatch):
 
     assert bridge.handle(_event("/start")) is None
     assert not (tmp_path / "wizard.json").exists()
+
+
+def test_bridge_setup_persists_connector_choice_without_secrets(tmp_path, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "42")
+    bridge = TelegramWizardBridge(tmp_path / "wizard.json")
+
+    reply = bridge.handle(_event("/setup"))
+    assert reply is not None
+    assert "Conectores disponibles" in reply["reply"]
+
+    reply = bridge.handle(_event("2"))
+    assert reply is not None
+    assert "ngrok local" in reply["reply"]
+
+    payload = (tmp_path / "wizard.json").read_text(encoding="utf-8")
+    assert '"provider": "ngrok"' in payload
+    assert "secret" not in payload.lower()

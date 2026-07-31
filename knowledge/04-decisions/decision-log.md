@@ -14,3 +14,10 @@
 - Estado: aceptada
 - Decisión: validar dominio, normalización, deduplicación, aislamiento de errores y scoring con fixtures antes de integrar fuentes reales.
 - Motivo: reduce acoplamiento y permite probar resiliencia sin depender de layouts o disponibilidad externa.
+
+## ADR-003 — núcleo self-hosted con conectores externos opcionales
+
+- Fecha: 2026-07-31
+- Estado: aceptada
+- Decisión: mantener Sauron y Hermes Gateway locales; encapsular OAuth HTTPS, Firecrawl administrado y otros servicios en conectores opcionales. MCP queda como fachada futura, no como reemplazo de Telegram/Gateway.
+- Detalle: [[adr-003-self-hosted-connectors]].
