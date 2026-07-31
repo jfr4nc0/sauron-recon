@@ -25,6 +25,7 @@ Esta vault es la capa de conocimiento durable del proyecto y la referencia para 
 - [[03-contracts/domain-contracts]] — contratos del núcleo.
 - [[04-decisions/decision-log]] — decisiones arquitectónicas.
 - [[04-decisions/adr-003-self-hosted-connectors]] — arquitectura self-hosted con conectores externos opcionales.
+- [[04-decisions/adr-004-free-software-mit]] — software libre, gratuito y self-hosted bajo MIT.
 - [[05-sources/portal-audit-2026-07-31]] — relevamiento de portales argentinos adicionales y validación inicial con Firecrawl.
 - [[05-sources/source-policy]] — política de fuentes y cumplimiento.
 - [[06-operations/runbook]] — operación, dry-run y recuperación.

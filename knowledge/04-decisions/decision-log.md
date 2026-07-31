@@ -21,3 +21,11 @@
 - Estado: aceptada
 - Decisión: mantener Sauron y Hermes Gateway locales; encapsular OAuth HTTPS, Firecrawl administrado y otros servicios en conectores opcionales. MCP queda como fachada futura, no como reemplazo de Telegram/Gateway.
 - Detalle: [[adr-003-self-hosted-connectors]].
+
+## ADR-004 — software libre con licencia MIT
+
+- Fecha: 2026-07-31
+- Estado: aceptada
+- Decisión: mantener Sauron como proyecto gratuito, comunitario y self-hosted bajo MIT; cada usuario configura sus propias fuentes y conectores.
+- Límite: la licencia del código no autoriza evadir términos, robots, login, CAPTCHA o controles anti-bot de las fuentes.
+- Detalle: [[adr-004-free-software-mit]].

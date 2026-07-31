@@ -4,7 +4,7 @@
   <img src="assets/logo.png" alt="Sauron Recon" width="400">
 </p>
 
-Profile Distribution de Hermes para descubrir locales comerciales en alquiler o venta, normalizar resultados de múltiples fuentes, detectar novedades y enviar reportes por Telegram.
+Profile Distribution de Hermes para descubrir locales comerciales en alquiler o venta, normalizar resultados de múltiples fuentes, detectar novedades y enviar reportes por Telegram. Es software libre, gratuito y self-hosted bajo licencia MIT.
 
 Estado: implementación inicial. La arquitectura y el roadmap están en [PLAN.md](PLAN.md), y la capa de conocimiento está en [knowledge/00-index.md](knowledge/00-index.md).
 
@@ -56,3 +56,5 @@ Cada portal tiene allowlist y query propia. Si Firecrawl responde `data: []`, se
 ## Seguridad y cumplimiento
 
 El proyecto no evade CAPTCHAs, autenticación ni controles anti-bot. Las fuentes deben consultarse respetando sus términos, robots.txt, límites de frecuencia y permisos de automatización.
+
+El registro de capacidades de fuentes separa integraciones por API, feed autorizado, páginas públicas compatibles con Firecrawl, importación manual y fuentes deshabilitadas. Ver [LICENSE](LICENSE), [ADR-004](knowledge/04-decisions/adr-004-free-software-mit.md) y el [relevamiento de portales](knowledge/05-sources/portal-audit-2026-07-31.md).

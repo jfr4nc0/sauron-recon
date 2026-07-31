@@ -8,7 +8,7 @@ Hermes profile / cron
         v
 CLI and application use cases
         |
-        +--> SourcePort --> Firecrawl/API/browser adapters
+        +--> SourcePort --> Firecrawl/API/feed/manual adapters
         +--> ConnectorPort --> local/tunnel/domain OAuth connectors
         +--> ListingRepositoryPort --> SQLite adapter
         +--> NotificationPort --> Hermes/Telegram adapter
@@ -32,3 +32,4 @@ Domain: criteria, listing, scoring, identity
 4. Adapters por fuente y report renderer.
 5. Cronjobs y delivery Telegram después de dry-run.
 6. Setup wizard y registry de conectores opcionales.
+7. Registry de capacidades por fuente: API, feed autorizado, Firecrawl público, importación manual o deshabilitada.

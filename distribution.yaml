@@ -51,5 +51,6 @@ distribution_owned:
   - pyproject.toml
   - README.md
   - PLAN.md
+  - LICENSE
   - .env.example
   - .env.template
