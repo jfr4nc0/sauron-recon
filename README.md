@@ -26,9 +26,16 @@ python3 -m venv .venv
 python -m pip install -e '.[test]'
 pytest
 python scripts/verify_distribution.py
+sauron
 sauron-recon health
 sauron-recon search --dry-run --criteria '{"operation":"rent","zones":["Palermo"],"max_price":1500,"min_area_m2":50}'
 ```
+
+`sauron` es la interfaz principal interactiva (TUI) para cargar criterios y
+ ejecutar búsquedas. `sauron-recon` queda como CLI técnico y compatible para
+ scripts, cron y automatización. En la TUI: `↑/↓` selecciona campos, `Enter`
+ edita, `F2` ejecuta, `L` alterna live/offline, `D` alterna detalle y `F10` o
+ `Q` sale.
 
 El núcleo actual es determinista y usa fixtures/in-memory para validar contratos, deduplicación, scoring, aislamiento de fallos e idempotencia SQLite antes de conectar fuentes externas. El adapter Firecrawl ya está conectado al daemon compartido existente de Hermes (`FIRECRAWL_API_URL`, por defecto `http://localhost:3002`):
 

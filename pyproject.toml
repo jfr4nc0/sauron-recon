@@ -17,6 +17,7 @@ test = ["pytest>=8"]
 crawler = ["crawl4ai>=0.9.2"]
 
 [project.scripts]
+sauron = "sauron_recon.entrypoints.tui:main"
 sauron-recon = "sauron_recon.entrypoints.cli:main"
 
 [tool.setuptools.packages.find]
