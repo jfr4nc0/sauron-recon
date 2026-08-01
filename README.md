@@ -64,9 +64,23 @@ sauron-recon search \\
 
 El adapter valida allowlist de dominio y `robots.txt` antes de cada página,
 falla cerrado si no puede verificar la autorización y no usa proxies,
-cookies personales, stealth ni automatización de login. `undetected-chromedriver`
-no está integrado: no se utiliza para evadir controles anti-bot, CAPTCHA,
-autenticación ni restricciones del portal.
+cookies personales, stealth ni automatización de login.
+
+### Reportes
+
+Los reportes se pueden generar en Markdown (`--report`), PDF (`--pdf`) o Excel
+(`--xlsx`). El formato Excel tiene dos hojas: "Resumen" con métricas de la
+corrida y "Avisos" con la tabla filtrable de listings.
+
+### Comportamiento en grupos de Telegram
+
+El bot sólo responde en grupos cuando:
+- se lo menciona con `@sauron_reconn_bot`
+- se usa un comando slash (`/start`, `/setup`, `/sources`, `/cancel`)
+
+Los mensajes de grupo que no mencionan al bot se ignoran en silencio. El bot
+no muestra razonamiento interno ni progreso de herramientas en sus respuestas;
+sólo envía el mensaje final limpio.
 
 Desde Telegram, `/setup` inicia el wizard de conectores. Permite seleccionar
 una instalación sólo local, ngrok, Cloudflare Tunnel, dominio HTTPS propio o
