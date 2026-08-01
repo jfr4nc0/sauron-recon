@@ -81,9 +81,9 @@ _CAPABILITIES: tuple[SourceCapability, ...] = (
         True, True, "Acceso público observado; falta confirmar locales y cobertura provincial.",
     ),
     SourceCapability(
-        "servidos", ("servidos.ar",), (SourceMode.PUBLIC_FIRECRAWL, SourceMode.MANUAL_IMPORT), SourceStatus.CANDIDATE,
+        "servidos", ("servidos.ar",), (SourceMode.DISABLED,), SourceStatus.BLOCKED,
         "Argentina", ("local", "departamento", "casa", "oficina", "terreno", "galpon"), ("rent", "sale"),
-        True, True, "Clasificados públicos; volumen y paginación aún no validados.",
+        False, False, "Sitio nuevo sin inventario real: 0 anuncios en todas las categorías verificadas.",
     ),
     SourceCapability(
         "facebook-marketplace", ("facebook.com",), (SourceMode.DISABLED,), SourceStatus.BLOCKED,
